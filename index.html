@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#0a0d14">
+  <meta name="description" content="AFTERECHO — A minimalist grid-based temporal logic puzzle game where your past movements become future entities.">
+  <title>AFTERECHO — Temporal Logic Puzzle</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230a0d14'/%3E%3Ccircle cx='12' cy='16' r='6' fill='%2300f0ff'/%3E%3Ccircle cx='20' cy='16' r='5' fill='%23b55fe6' fill-opacity='0.8'/%3E%3C/svg%3E">
+</head>
+<body>
+  <div id="app-root">
+    <!-- Header -->
+    <header class="game-header">
+      <div class="logo-group">
+        <h1 class="game-title">AFTER<span class="highlight">ECHO</span></h1>
+        <span class="tagline">Temporal Logic Simulation</span>
+      </div>
+
+      <nav class="header-nav">
+        <button id="btn-sound-toggle" class="icon-btn" title="Toggle Sound" aria-label="Toggle Sound">🔊</button>
+        <button id="btn-levels" class="icon-btn" title="Level Select" aria-label="Level Select">▦</button>
+        <button id="btn-help" class="icon-btn" title="How to Play" aria-label="How to Play">?</button>
+        <button id="btn-stats" class="icon-btn" title="Statistics" aria-label="Statistics">📊</button>
+        <button id="btn-settings" class="icon-btn" title="Settings" aria-label="Settings">⚙</button>
+      </nav>
+    </header>
+
+    <!-- Game Mode Selector -->
+    <nav class="mode-bar">
+      <button class="mode-tab active" data-mode="campaign">Campaign</button>
+      <button class="mode-tab" data-mode="daily">Daily Echo</button>
+      <button class="mode-tab" data-mode="endless">Endless Lab</button>
+      <button class="mode-tab" data-mode="timetrial">Time Trial</button>
+    </nav>
+
+    <!-- Main Game Board Container -->
+    <main class="board-section">
+      <!-- Status Meta Bar -->
+      <div class="status-bar">
+        <div class="status-left">
+          <div id="chapter-title" class="subhead">Chapter 1: Emergence</div>
+          <div id="level-title" class="title">First Steps</div>
+        </div>
+
+        <div class="status-center">
+          <div class="stat-pill">
+            <span class="label">MOVES</span>
+            <span id="move-counter" class="value">0</span>
+            <span class="divider">/</span>
+            <span class="label">PAR</span>
+            <span id="par-counter" class="value">3</span>
+          </div>
+          <div id="timetrial-clock" class="clock-display"></div>
+        </div>
+
+        <div class="status-right">
+          <div id="echo-status" class="echo-indicator">
+            <span class="echo-countdown">Echo in 4 moves</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Canvas Frame -->
+      <div class="canvas-wrapper">
+        <canvas id="game-canvas"></canvas>
+
+        <!-- Paradox Overlay -->
+        <div id="paradox-overlay" class="paradox-overlay">
+          <div class="paradox-dialog">
+            <div class="paradox-badge">TEMPORAL PARADOX</div>
+            <p id="paradox-reason">You crossed paths with your past Echo!</p>
+            <div class="paradox-actions">
+              <button id="btn-paradox-undo" class="btn primary">↩ Rewind (Undo)</button>
+              <button id="btn-paradox-restart" class="btn secondary">↻ Restart Timeline</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Temporal Timeline Bar -->
+      <div class="timeline-container">
+        <div class="timeline-label">TIMELINE</div>
+        <div id="timeline-bar" class="timeline-bar"></div>
+      </div>
+
+      <!-- Hint & Lore Bar -->
+      <div class="hint-bar">
+        <span class="hint-icon">✦</span>
+        <span id="hint-text">Step toward the emerald exit beacon.</span>
+      </div>
+
+      <!-- Quick Action Controls -->
+      <div class="action-bar">
+        <button id="btn-undo" class="ctrl-btn" title="Undo Move (U / Backspace)">
+          <span class="btn-icon">↩</span>
+          <span class="btn-text">Undo</span>
+        </button>
+        <button id="btn-wait" class="ctrl-btn accent" title="Wait 1 Turn (Space / Z)">
+          <span class="btn-icon">⏸</span>
+          <span class="btn-text">Wait</span>
+        </button>
+        <button id="btn-restart" class="ctrl-btn" title="Restart Level (R)">
+          <span class="btn-icon">↻</span>
+          <span class="btn-text">Restart</span>
+        </button>
+      </div>
+
+      <!-- Mobile On-Screen D-Pad -->
+      <div class="dpad-container" id="mobile-dpad">
+        <div class="dpad-grid">
+          <div class="dpad-empty"></div>
+          <button id="dpad-up" class="dpad-btn up" aria-label="Up">▲</button>
+          <div class="dpad-empty"></div>
+          <button id="dpad-left" class="dpad-btn left" aria-label="Left">◀</button>
+          <button id="dpad-wait" class="dpad-btn center" aria-label="Wait">●</button>
+          <button id="dpad-right" class="dpad-btn right" aria-label="Right">▶</button>
+          <div class="dpad-empty"></div>
+          <button id="dpad-down" class="dpad-btn down" aria-label="Down">▼</button>
+          <div class="dpad-empty"></div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Modals -->
+
+    <!-- Level Selector Modal -->
+    <div id="levels-modal" class="modal">
+      <div class="modal-dialog">
+        <div class="modal-header">
+          <h2>Campaign Sectors</h2>
+          <button class="modal-close" aria-label="Close">✕</button>
+        </div>
+        <div class="modal-body">
+          <div id="levels-grid" class="levels-grid"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- How to Play Modal -->
+    <div id="help-modal" class="modal">
+      <div class="modal-dialog">
+        <div class="modal-header">
+          <h2>How to Play AFTERECHO</h2>
+          <button class="modal-close" aria-label="Close">✕</button>
+        </div>
+        <div class="modal-body help-content">
+          <div class="help-section">
+            <h3><span class="dot player"></span> 1. The Player</h3>
+            <p>You control the <strong>cyan avatar</strong>. Navigate across the grid to reach the <strong>emerald exit beacon</strong>. Use <strong>WASD</strong>, <strong>Arrow keys</strong>, or swipe on mobile.</p>
+          </div>
+          <div class="help-section">
+            <h3><span class="dot echo"></span> 2. The Temporal Echo</h3>
+            <p>Every few moves, an <strong>Echo</strong> of your past self materializes. It replays your exact sequence of past moves step by step.</p>
+          </div>
+          <div class="help-section">
+            <h3><span class="dot paradox"></span> 3. Avoid Paradoxes</h3>
+            <p>You cannot step onto the same tile as an Echo or cross paths directly. Breaking causality causes a <strong>Temporal Paradox</strong>!</p>
+          </div>
+          <div class="help-section">
+            <h3><span class="dot switch"></span> 4. Switches & Pressure Plates</h3>
+            <p><strong>Pressure plates</strong> open doors while held down. Coordinate so your Echo steps on a plate while you slip through the open door!</p>
+          </div>
+          <div class="help-section">
+            <h3><span class="dot wait"></span> 5. The Wait Action</h3>
+            <p>Press <strong>Spacebar</strong>, <strong>Z</strong>, or the <strong>Wait button</strong> to pass a turn without moving. This lets your Echo catch up or hold plates in place.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Statistics Modal -->
+    <div id="stats-modal" class="modal">
+      <div class="modal-dialog">
+        <div class="modal-header">
+          <h2>Player Records & Statistics</h2>
+          <button class="modal-close" aria-label="Close">✕</button>
+        </div>
+        <div class="modal-body stats-body">
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-num" id="stat-played">0</div>
+              <div class="stat-title">Puzzles Attempted</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-num" id="stat-completed">0</div>
+              <div class="stat-title">Campaign Cleared</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-num" id="stat-stars">0</div>
+              <div class="stat-title">Total Stars ★</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-num" id="stat-streak">0</div>
+              <div class="stat-title">Daily Streak</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-num" id="stat-endless">Sector 0</div>
+              <div class="stat-title">Endless Record</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal">
+      <div class="modal-dialog">
+        <div class="modal-header">
+          <h2>Simulation Settings</h2>
+          <button class="modal-close" aria-label="Close">✕</button>
+        </div>
+        <div class="modal-body settings-list">
+          <label class="setting-item">
+            <span>Sound Effects (Synthesizer)</span>
+            <input type="checkbox" id="setting-sfx" checked>
+          </label>
+          <label class="setting-item">
+            <span>Show Movement Trails</span>
+            <input type="checkbox" id="setting-trail" checked>
+          </label>
+          <label class="setting-item">
+            <span>Reduced Motion</span>
+            <input type="checkbox" id="setting-motion">
+          </label>
+          <label class="setting-item">
+            <span>High Contrast Palette</span>
+            <input type="checkbox" id="setting-contrast">
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Win Level Modal -->
+    <div id="win-modal" class="modal">
+      <div class="modal-dialog win-dialog">
+        <div class="win-banner">TIMELINE RESOLVED</div>
+        <div id="win-stars" class="win-stars">★★★</div>
+        <div class="win-stats">
+          <div class="win-stat-col">
+            <span class="label">MOVES</span>
+            <span id="win-moves" class="val">8</span>
+          </div>
+          <div class="win-stat-col">
+            <span class="label">PAR</span>
+            <span id="win-par" class="val">8</span>
+          </div>
+        </div>
+        <div class="win-actions">
+          <button id="btn-next-level" class="btn primary">Next Level →</button>
+          <button id="btn-win-replay" class="btn secondary">Replay</button>
+          <button id="btn-share-result" class="btn tertiary">Share Result 📋</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="./dist/ui/app.js"></script>
+</body>
+</html>
