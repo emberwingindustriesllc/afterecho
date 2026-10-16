@@ -1,0 +1,25 @@
+{
+  "name": "afterecho",
+  "version": "1.0.0",
+  "description": "AFTERECHO - Minimalist grid-based temporal logic puzzle game",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "test": "node --test tests/*.test.js",
+    "check": "npm run build && npm run test"
+  },
+  "keywords": [
+    "game",
+    "puzzle",
+    "logic",
+    "indie",
+    "browser-game",
+    "canvas",
+    "typescript"
+  ],
+  "author": "AFTERECHO Studio",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^7.0.2"
+  }
+}
